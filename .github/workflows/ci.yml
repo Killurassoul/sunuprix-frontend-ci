@@ -1,0 +1,28 @@
+# CI frontend : chaque push (toutes branches) et chaque PR vers main lancent tests + build.
+# Une PR ne peut être fusionnée dans main que si ce job est vert (protection de branche).
+name: CI frontend
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests-et-build:
+    name: Tests et build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  # Étape Docker Hub (build + push sha-<7> et latest sur main) : ajoutée avec le Dockerfile (brouillon pour B3).
